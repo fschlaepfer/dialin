@@ -75,7 +75,9 @@ handleLoginSubmit = do
     --      isLoggedIn >>= flip when (redirect "/recent")
     isLoggedIn >>= flip when (redirect "/recent")
     loginUser "login" "password" Nothing
-                        (\err -> handleLogin $ Just $ T.pack ("Login failed: " ++ show err))
+                        (\err -> case err of
+                                    UsernameMissing -> handleLogin Nothing
+                                    _               -> handleLogin $ Just $ T.pack ("Login failed: " ++ show err))
                         (redirect "/recent") -- toS?
 
 handleLogout :: Handler App (AuthManager App) ()
@@ -179,7 +181,7 @@ newBrewForm beans user = check "Not a valid brew" validBrew $ Brew
     beanChoices :: [Entity Bean] -> [(Key Bean, Text)]
     beanChoices = map f
     f be = case (entityVal be) of
-                Bean name roaster -> (entityKey be, T.pack $ name ++ " by " ++ roaster)
+                Bean name roaster -> (entityKey be, T.pack $ name ++ " (" ++ roaster ++ ")")
           
 allBeans = do
     pool <- asks (_appStateDb . _appState)
@@ -188,6 +190,24 @@ allBeans = do
         $ E.from $ \bean -> do
              return bean
     return beans
+
+newBeanHandler :: Handler App App ()
+newBeanHandler = do
+    (view, result) <- runForm "form" newBeanForm
+    case result of 
+        Just bean -> do
+            pool <- asks (_appStateDb . _appState)
+            withPool pool $ insert_ bean
+            redirect "/new"
+        Nothing   -> heistLocal (bindDigestiveSplices view) $ render "new_bean"
+  where
+
+    -- Brew _ _ grind dose time yield temp rating notes
+newBeanForm :: Monad m
+            => Form Text m Bean
+newBeanForm = check "Not a valid bean" (const True) $ Bean
+    <$> "name"    .: string Nothing
+    <*> "roaster" .: string Nothing -- TODO: change to Text in bean model
 
 initApp :: ConnectionPool
         -> SnapletInit App App
@@ -206,8 +226,10 @@ initApp pool = makeSnaplet "dial-in" "Dial in your espresso shots faster!" Nothi
         , ("register",    with auth handleRegister )
         , ("recent",      recentBrewsHandler )
         , ("new",         newBrewHandler )
+        , ("new_bean",    newBeanHandler )
         , ("api",         applyCORS defaultOptions $ serveSnap api server)
         , ("",            serveDirectory "static" )
+        , ("/",           redirect "/recent" )
         ]
     addAuthSplices h auth
     return $ App h s a $ AppState pool
@@ -215,15 +237,16 @@ initApp pool = makeSnaplet "dial-in" "Dial in your espresso shots faster!" Nothi
     api :: Proxy (Api (AppHandler ()))
     api = Proxy
     initData = do
-        deleteWhere ([] :: [Filter Brew])
-        deleteWhere ([] :: [Filter Bean])
-        h  <- insert $ Bean "Hunkute" "Tim Wendelboe"
-        k  <- insert $ Bean "Karogoto" "Tim Wendelboe"
-        km <- insert $ Bean "Kayon Mountain" "The Barn"
-        insert_ $ Brew h (T.pack "noUserIdent") Fine 22 27 45 93 Good
-            (T.pack "creamy, sweet. slightly bitter")
-        insert_ $ Brew k (T.pack "noUserIdent") Normal 21 31 41 94 VeryGood
-            (T.pack "sweet syrupy, slightly underextracted.")
+        --deleteWhere ([] :: [Filter Brew])
+        --deleteWhere ([] :: [Filter Bean])
+        --h  <- insert $ Bean "Hunkute" "Tim Wendelboe"
+        --k  <- insert $ Bean "Karogoto" "Tim Wendelboe"
+        --km <- insert $ Bean "Kayon Mountain" "The Barn"
+        --insert_ $ Brew h (T.pack "noUserIdent") Fine 22 27 45 93 Good
+        --    (T.pack "creamy, sweet. slightly bitter")
+        --insert_ $ Brew k (T.pack "noUserIdent") Normal 21 31 41 94 VeryGood
+        --    (T.pack "sweet syrupy, slightly underextracted.")
+        return ()
 
 --    beanId BeanId
 --    userIdent Text

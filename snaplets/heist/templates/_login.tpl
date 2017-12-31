@@ -15,13 +15,9 @@
   
 <div class="ui middle aligned center aligned grid">
   <div class="column">
-    <h2 class="ui teal image header">
-      <div class="content">
-        Dial-In
-      </div>
-    </h2>
-
-    <p><loginError /></p>
+     <p>
+        <loginError />
+     </p>
 
     <bind tag="postAction">/login</bind>
     <bind tag="submitText">Login</bind>

@@ -11,8 +11,25 @@
     <title>Dial-In</title>
   </head>
   <body>
-    Logged in as <loggedInUser/>.
+    <div class="ui text container">
+        <ifLoggedIn>
+            <div class="ui four item menu">
+                <a class="item" href="/new">
+                    Pull shot
+                </a>
+                <a class="item" href="/recent">
+                    My shots
+                </a>
+                <a class="item" href="/new_bean">
+                    Add coffee
+                </a>
+                <a class="item" href="/logout">
+                    <i>Logout</i>
+                </a>
+            </div> 
+        </ifLoggedIn>
 
-    <apply-content/>
+        <apply-content/>
+    </div>
   </body>
 </html>

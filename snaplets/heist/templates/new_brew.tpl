@@ -1,43 +1,59 @@
 <apply template="base">
-    <h2>Log Shot</h2>
+    <h2 class="ui header">Pull Shot</h2>
+    <br>
 
-    <p><a href="/new">Click to view recent shots</a></p>
-
-    <dfForm action="/new">
+    <dfForm action="/new" class="fluid ui form">
         <dfChildErrorList />
 
-        <dfLabel ref="beanid">Bean: </dfLabel>
-        <dfInputSelect ref="beanid" />
-        <br>
+        <div class="ui grid">
+            <div class="ten wide field">
+                <dfLabel ref="beanid">Bean</dfLabel>
+                <dfInputSelect class="ui fluid dropdown" ref="beanid" />
+            </div>
 
-        <dfLabel ref="grind">Grind: </dfLabel>
-        <dfInputSelect ref="grind" />
-        <br>
+            <div class="six wide field">
+                <dfLabel ref="grind">Grind</dfLabel>
+                <dfInputSelect class="ui fluid dropdown" ref="grind" />
+            </div>
+        </div>
 
-        <dfLabel ref="dose">Dose: </dfLabel>
-        <dfInput ref="dose" type="number" min="0" step="1" pattern="\d+" value="18" />
-        <br>
+        <div class="ui grid">
+            <div class="four wide field">
+                <dfLabel ref="dose">Dose [g]</dfLabel>
+                <dfInput ref="dose" type="number" min="0" step="1" pattern="\d+" value="18" />
+            </div>
 
-        <dfLabel ref="time">Time: </dfLabel>
-        <dfInput ref="time" type="number" min="0" step="1" pattern="\d+" value="28" />
-        <br>
+            <div class="four wide field">
+                <dfLabel ref="time">Time [s]</dfLabel>
+                <dfInput ref="time" type="number" min="0" step="1" pattern="\d+" value="28" />
+            </div>
 
-        <dfLabel ref="yield">Yield: </dfLabel>
-        <dfInput ref="yield" type="number" min="0" step="1" pattern="\d+" value="36" />
-        <br>
+            <div class="four wide field">
+                <dfLabel ref="yield">Yield [g]</dfLabel>
+                <dfInput ref="yield" type="number" min="0" step="1" pattern="\d+" value="36" />
+            </div>
 
-        <dfLabel ref="temperature">Temperature: </dfLabel>
-        <dfInput ref="temperature" type="number" min="0" step="1" pattern="\d+" value="92" />
-        <br>
+            <div class="four wide field">
+                <dfLabel ref="temperature">Temp [°C]</dfLabel>
+                <dfInput ref="temperature" type="number" min="0" step="1" pattern="\d+" value="92" />
+            </div>
+        </div>
+        <br/>
 
-        <dfLabel ref="rating">Rating: </dfLabel>
-        <dfInputSelect ref="rating" />
-        <br>
+        <div class="ui grid">
+            <div class="six wide field">
+                <dfLabel ref="rating">Rating</dfLabel>
+                <dfInputSelect class="ui fluid dropdown" ref="rating" />
+            </div>
 
-        <dfLabel ref="notes">Notes: </dfLabel>
-        <dfInputText ref="notes" />
-        <br>
+            <div class="ten wide field">
+                <dfLabel ref="notes">Notes</dfLabel>
+                <dfInputText ref="notes" />
+            </div>
+        </div>
 
-        <dfInputSubmit value="Save" />
+        <div class="ui grid">
+            <dfInputSubmit class="fluid ui button" value="Save" />
+        </div>
     </dfForm>
 </apply>

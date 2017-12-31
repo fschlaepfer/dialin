@@ -1,12 +1,59 @@
 <apply template="base">
-    <h2>Recent Shots</h2>
+    <h2>My Shots</h2>
 
-    <a href="/new">Click to log a new shot</a>
+    <div class="ui relaxed divided list">
+        <recentBrews>
 
-    <recentBrews>
-        <p>
-            Pulled <i><name/></i> by <i><roaster/></i> as <dose/>g in, <yield/>g out in <time/>s at <temperature/>°C.<br />
-            (Rated <b><rating/></b>. Notes: <i><notes/></i>)
-        </p>
-    </recentBrews>
+            <div class="item">
+                <div class="header">
+                    <b><name/></b> <span style="font-weight: normal; font-style: italic;"><i><roaster/></i></span>
+                    <p>
+                        <i class="star icon"></i>
+                        <span style="font-weight: normal; font-style: italic;"><rating/></span>
+                        <br />
+                        <i class="comment icon"></i>
+                        <span style="font-weight: normal; font-style: italic;"><notes/></span>
+                    </p>
+
+                </div>
+
+                <div class="ui four statistics" style="margin-top: 8pt;">
+                  <div class="ui tiny statistic">
+                    <div class="value" style="font-size: 14pt">
+                      <dose/>g
+                    </div>
+                    <div class="label" style="font-size: 10pt">
+                      in
+                    </div>
+                  </div>
+                  <div class="ui tiny statistic">
+                    <div class="value" style="font-size: 14pt">
+                      <yield/>g
+                    </div>
+                    <div class="label" style="font-size: 10pt">
+                      out
+                    </div>
+                  </div>
+                  <div class="ui tiny statistic">
+                    <div class="value" style="font-size: 14pt">
+                      <time/>s
+                    </div>
+                    <div class="label" style="font-size: 10pt">
+                      time
+                    </div>
+                  </div>
+                  <div class="ui tiny statistic">
+                    <div class="value" style="font-size: 14pt">
+                      <temperature/>°C
+                    </div>
+                    <div class="label" style="font-size: 10pt">
+                      temp
+                    </div>
+                  </div>
+              </div>
+
+
+          </div>
+        </recentBrews>
+    </div>
 </apply>
