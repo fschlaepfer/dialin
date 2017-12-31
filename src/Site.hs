@@ -158,7 +158,7 @@ newBrewForm beans user = check "Not a valid brew" validBrew $ Brew
     <*> "time"        .: stringRead "Not a number" (Just 11)
     <*> "yield"       .: stringRead "Not a number" (Just 11)
     <*> "temperature" .: stringRead "Not a number" (Just 11)
-    <*> "rating"      .: choice ratingChoices (Just Average)
+    <*> "rating"      .: choice ratingChoices (Just Ok)
     <*> "notes"       .: text (Just "")
   where
     validBrew _ = True
@@ -171,11 +171,11 @@ newBrewForm beans user = check "Not a valid brew" validBrew $ Brew
         ]
     ratingChoices =
         [ (Terrible, "Terrible" )
-        , (VeryBad,  "VeryBad"  )
+        , (VeryBad,  "Very Bad"  )
         , (Bad,      "Bad"      )
-        , (Average,  "Average"  )
+        , (Ok,       "Ok"  )
         , (Good,     "Good"     )
-        , (VeryGood, "VeryGood" )
+        , (VeryGood, "Very Good" )
         , (Great,    "Great"    )
         ]
     beanChoices :: [Entity Bean] -> [(Key Bean, Text)]
@@ -202,7 +202,6 @@ newBeanHandler = do
         Nothing   -> heistLocal (bindDigestiveSplices view) $ render "new_bean"
   where
 
-    -- Brew _ _ grind dose time yield temp rating notes
 newBeanForm :: Monad m
             => Form Text m Bean
 newBeanForm = check "Not a valid bean" (const True) $ Bean
@@ -247,16 +246,6 @@ initApp pool = makeSnaplet "dial-in" "Dial in your espresso shots faster!" Nothi
         --insert_ $ Brew k (T.pack "noUserIdent") Normal 21 31 41 94 VeryGood
         --    (T.pack "sweet syrupy, slightly underextracted.")
         return ()
-
---    beanId BeanId
---    userIdent Text
---    grind Grind
---    dose Int
---    time Int
---    yield Int
---    temperature Int
---    rating Rating
---    notes Text -- Text?
 
 site :: IO ()
 site = do

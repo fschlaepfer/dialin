@@ -20,7 +20,7 @@
         <div class="ui grid">
             <div class="four wide field">
                 <dfLabel ref="dose">Dose [g]</dfLabel>
-                <dfInput ref="dose" type="number" min="0" step="1" pattern="\d+" value="18" />
+                <dfInput ref="dose" type="number" min="0" step="0.1" pattern="\d+" value="18" />
             </div>
 
             <div class="four wide field">
@@ -30,7 +30,7 @@
 
             <div class="four wide field">
                 <dfLabel ref="yield">Yield [g]</dfLabel>
-                <dfInput ref="yield" type="number" min="0" step="1" pattern="\d+" value="36" />
+                <dfInput ref="yield" type="number" min="0" step="0.1" pattern="\d+" value="36" />
             </div>
 
             <div class="four wide field">

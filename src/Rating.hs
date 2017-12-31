@@ -11,7 +11,7 @@ data Rating
     = Terrible
     | VeryBad
     | Bad
-    | Average
+    | Ok
     | Good
     | VeryGood
     | Great

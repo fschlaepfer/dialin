@@ -29,9 +29,9 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
     beanId BeanId
     userIdent Text
     grind Grind
-    dose Int
+    dose Double
     time Int
-    yield Int
+    yield Double
     temperature Int
     rating Rating
     notes Text -- Text?
