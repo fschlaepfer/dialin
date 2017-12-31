@@ -26,7 +26,7 @@ import           Control.Monad.Trans.Resource
 import           Control.Monad.Reader
 import           Control.Monad.State
 import           Data.Map.Syntax              ((##))
-import           Data.Maybe                   (maybe, fromJust)
+import           Data.Maybe                   (maybe, fromJust, fromMaybe)
 import           Data.Text                    (Text)
 import qualified Data.Text as T
 import           Data.Pool                    
@@ -54,6 +54,7 @@ import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Http.Server             (defaultConfig)
 import           Servant.Server               (serveSnap, Server) 
+import           System.Environment           (lookupEnv)
 
 handleIndex :: Handler App (AuthManager App) ()
 handleIndex = render "index"
@@ -194,7 +195,7 @@ initApp pool = makeSnaplet "dial-in" "Dial in your espresso shots faster!" Nothi
     s <- nestSnaplet "sess" sess $ initCookieSessionManager "site_key.txt" "sess" Nothing (Just 3600)
     h <- nestSnaplet "heist" heist $ heistInit "templates"
     _ <- liftIO $ runNoLoggingT $ runSqlPool (runMigrationUnsafe migrateAuth) pool
-    _ <- liftIO $ runNoLoggingT $ runSqlPool (runMigrationUnsafe migrateAll) pool
+    _ <- liftIO $ runNoLoggingT $ runSqlPool (runMigration migrateAll) pool
     _ <- liftIO $ runNoLoggingT $ runSqlPool (initData) pool
     a <- nestSnaplet "auth" auth $ initPersistAuthManager' defAuthSettings sess pool
     addRoutes
@@ -237,8 +238,10 @@ initApp pool = makeSnaplet "dial-in" "Dial in your espresso shots faster!" Nothi
 site :: IO ()
 site = do
     --runSqlPool  $ runMigration migrateAll -- TODO
+    connStr' <- lookupEnv "DATABASE_URL"
+    let connStr = BS.pack $ fromMaybe localConnStr connStr'
     pool <- runStderrLoggingT $ createPostgresqlPool connStr 3
     -- ^ TODO: move this to initApp? understand whether/how to use liftBaseWith etc.
     serveSnaplet defaultConfig $ initApp pool
   where
-    connStr = "host=localhost dbname=dialin user=dialin password=dialin"
+    localConnStr = "host=localhost dbname=dialin user=dialin password=dialin"
