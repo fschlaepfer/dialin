@@ -1,0 +1,87 @@
+name:           dialin
+version:        0.1.0.0
+synopsis:       A web app to help you dial in your espresso shots.
+description:    Please see the README on Github at <https://github.com/fschlaep/dialin#readme>
+homepage:       https://github.com/fschlaep/dialin#readme
+bug-reports:    https://github.com/fschlaep/dialin/issues
+author:         Fabian Schläpfer
+maintainer:     fschlaep@gmail.com
+copyright:      2017 Fabian Schläpfer
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    ChangeLog.md
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/fschlaep/dialin
+
+library
+  exposed-modules:
+      Api
+    , Models
+    , Grind
+    , Rating
+    , Server
+    , Types.App
+    , Site
+  other-modules:
+      Paths_dialin
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , text
+    , monad-logger
+    , lens
+    , persistent >= 2.2
+    , persistent-postgresql >= 2.2
+    , persistent-template >= 2.5.3
+    , resource-pool
+    , aeson >= 1.2.3.0
+    , esqueleto
+    , servant
+    , snap
+    , snap-core
+    , snap-server
+    , snap-cors
+    , snaplet-persistent
+    , servant-snap
+    , heist
+    , digestive-functors
+    , digestive-functors-snap
+    , digestive-functors-heist
+    , resourcet 
+    , mtl 
+    , bytestring
+    , map-syntax
+  default-language: Haskell2010
+
+executable dialin-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_dialin
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , dialin
+  default-language: Haskell2010
+
+test-suite dialin-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_dialin
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , dialin
+  default-language: Haskell2010

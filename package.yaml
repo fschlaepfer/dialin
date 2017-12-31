@@ -1,0 +1,48 @@
+name:                dialin
+version:             0.1.0.0
+github:              "fschlaep/dialin"
+license:             BSD3
+author:              "Fabian Schläpfer"
+maintainer:          "fschlaep@gmail.com"
+copyright:           "2017 Fabian Schläpfer"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+synopsis:            A web app to help you dial in your espresso shots.
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://github.com/fschlaep/dialin#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  dialin-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - dialin
+
+tests:
+  dialin-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - dialin

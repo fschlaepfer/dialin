@@ -1,0 +1,67 @@
+Using configuration file: stack.yaml
+
+Warning: WARNING: /home/user/code/haskell/dialin/dialin.cabal was modified manually. Ignoring
+         package.yaml in favor of cabal file. If you want to use package.yaml instead of the cabal
+         file, then please delete the cabal file.
+Using cabal packages:
+- ./
+
+Using resolver: lts-10.0
+
+Warning: Installed version of cabal-install (2.0.0.1) is newer than stack has been tested with.  If you run into difficulties, consider downgrading.
+         
+Using compiler: ghc-8.2.2
+Asking cabal to calculate a build plan...
+Trying with packages from lts-10.0 and 8 external packages as hard constraints...
+Attempt failed.
+
+>>>> Cabal errors begin
+CallStack (from HasCallStack):
+  die', called at ./Distribution/Client/Install.hs:240:21 in main:Distribution.Client.Install
+cabal: Could not resolve dependencies:
+trying: dialin-0.1.0.0 (user goal)
+trying: heist-1.0.1.1 (dependency of dialin-0.1.0.0)
+next goal: snaplet-persistent (dependency of dialin-0.1.0.0)
+rejecting: snaplet-persistent-0.5 (conflict: heist==1.0.1.1,
+snaplet-persistent => heist>=0.14 && <0.15)
+rejecting: snaplet-persistent-0.4.1, snaplet-persistent-0.4,
+snaplet-persistent-0.3, snaplet-persistent-0.2.0.1, snaplet-persistent-0.2
+(constraint from main config /tmp/cabal-solver6375/cabal.config requires
+==0.5)
+After searching the rest of the dependency tree exhaustively, these were the
+goals I've had most trouble fulfilling: heist (68), dialin (8),
+snaplet-persistent (7)
+<<<< Cabal errors end
+
+Retrying with packages from lts-10.0 and 8 external packages as preferences...
+Attempt failed.
+
+>>>> Cabal errors begin
+CallStack (from HasCallStack):
+  die', called at ./Distribution/Client/Install.hs:240:21 in main:Distribution.Client.Install
+cabal: Could not resolve dependencies:
+trying: dialin-0.1.0.0 (user goal)
+trying: transformers-0.5.2.0/installed-0.5... (dependency of mtl-2.2.1)
+next goal: snaplet-persistent (dependency of dialin-0.1.0.0)
+rejecting: snaplet-persistent-0.5, snaplet-persistent-0.4.1,
+snaplet-persistent-0.4 (conflict: transformers==0.5.2.0/installed-0.5...,
+snaplet-persistent => transformers>=0.2 && <0.5)
+rejecting: snaplet-persistent-0.3, snaplet-persistent-0.2.0.1,
+snaplet-persistent-0.2 (conflict: transformers==0.5.2.0/installed-0.5...,
+snaplet-persistent => transformers>=0.2 && <0.4)
+After searching the rest of the dependency tree exhaustively, these were the
+goals I've had most trouble fulfilling: transformers (212), mtl (145),
+snaplet-persistent (70), base (57), dialin (15)
+<<<< Cabal errors end
+
+*** Failed to arrive at a workable build plan.
+
+Solver could not resolve package dependencies.
+You can try the following:
+    - Update external packages with 'stack update' and try again.
+    - Tweak stack.yaml and try again
+        - Remove any unnecessary packages.
+        - Add any missing remote packages.
+        - Add extra dependencies to guide solver.
+        - Adjust resolver.
+
