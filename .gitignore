@@ -1,0 +1,12 @@
+.stack-work/
+*~
+.*.swp
+.*.swo
+.*.swn
+dist-newstyle/
+frontend-result/
+backend-result/
+common-result/
+result/
+log/
+site_key.txt

@@ -11,16 +11,14 @@
 
 module Models where
 
-import           Grind
-import           Rating
+import           Models.Grind
+import           Models.Rating
 import           Data.Text                    (Text)
 import           Database.Persist
 import           Database.Persist.Postgresql
 import           Database.Persist.TH 
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
---  Person json
---    name String
   Bean json
     name String
     roaster String
@@ -34,7 +32,7 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
     yield Double
     temperature Int
     rating Rating
-    notes Text -- Text?
+    notes Text
     deriving Eq Show
 |]
 

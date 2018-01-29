@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE TemplateHaskell            #-}
 
-module Grind where
+module Models.Grind where
 
 import           GHC.Generics
 import           Data.Aeson

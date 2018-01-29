@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE TemplateHaskell            #-}
 
-module Rating where
+module Models.Rating where
 
 import           GHC.Generics
 import           Data.Aeson

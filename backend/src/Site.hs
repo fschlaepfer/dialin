@@ -14,8 +14,9 @@ module Site
 import           Api                          (Api)
 import           Types.App
 import           Models                              
-import           Grind                              
-import           Rating                              
+import           Models.Grind                              
+import           Models.Rating                              
+import           Common.Foo
 import           Server                       (server, withPool)
 
 import           Control.Applicative
@@ -48,7 +49,6 @@ import           Snap.CORS
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth
 import           Snap.Snaplet.Auth.Backends.Persistent
-                                              --(initPersistAuthManager')
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
@@ -69,16 +69,12 @@ handleLogin authError = renderWithSplices "login" errs
 
 handleLoginSubmit :: Handler App (AuthManager App) ()
 handleLoginSubmit = do
-    -- TODO: try to understand precendence using this example:
-    --      isLoggedIn >>= flip when $ redirect "/recent"
-    --    vs.
-    --      isLoggedIn >>= flip when (redirect "/recent")
     isLoggedIn >>= flip when (redirect "/recent")
     loginUser "login" "password" Nothing
                         (\err -> case err of
                                     UsernameMissing -> handleLogin Nothing
                                     _               -> handleLogin $ Just $ T.pack ("Login failed: " ++ show err))
-                        (redirect "/recent") -- toS?
+                        (redirect "/recent")
 
 handleLogout :: Handler App (AuthManager App) ()
 handleLogout = logout >> redirect "/login"
@@ -94,6 +90,14 @@ handleRegister = method GET handleForm <|> method POST handleFormSubmit
             Right _ -> loginUser "login" "password" Nothing -- This is currently identical to handleLoginSubmit. Adjust for register differences. Extend register template with error message, just like login.
                          (\err -> handleLogin $ Just $ T.pack ("Login failed: " ++ show err))
                          (redirect "/recent")
+
+testingFoo :: Foo
+testingFoo = Foo "testFoo" 42
+
+reflexAppHandler :: Handler App (AuthManager App) ()
+reflexAppHandler = do
+    isLoggedIn >>= flip unless (redirect "/login")
+    render "reflex_app"
 
 --recentBrewsHandler :: Handler App (AuthManager App) ()
 recentBrewsHandler :: Handler App App ()
@@ -186,7 +190,7 @@ newBrewForm beans user = check "Not a valid brew" validBrew $ Brew
 allBeans = do
     pool <- asks (_appStateDb . _appState)
     beans <- withPool pool
-        $ E.select -- TODO: order by time created
+        $ E.select -- TODO: Order by time created.
         $ E.from $ \bean -> do
              return bean
     return beans
@@ -223,6 +227,7 @@ initApp pool = makeSnaplet "dial-in" "Dial in your espresso shots faster!" Nothi
         , ("login",       with auth handleLoginSubmit )
         , ("logout",      with auth handleLogout )
         , ("register",    with auth handleRegister )
+        , ("reflex",      with auth reflexAppHandler )
         , ("recent",      recentBrewsHandler )
         , ("new",         newBrewHandler )
         , ("new_bean",    newBeanHandler )
@@ -253,7 +258,7 @@ site = do
     connStr' <- lookupEnv "DATABASE_URL"
     let connStr = BS.pack $ fromMaybe localConnStr connStr'
     pool <- runStderrLoggingT $ createPostgresqlPool connStr 3
-    -- ^ TODO: move this to initApp? understand whether/how to use liftBaseWith etc.
+    -- ^ TODO: move this to initApp
     serveSnaplet defaultConfig $ initApp pool
   where
     localConnStr = "host=localhost dbname=dialin user=dialin password=dialin"

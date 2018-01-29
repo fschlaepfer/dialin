@@ -13,7 +13,7 @@
   <body>
     <div class="ui text container">
         <ifLoggedIn>
-            <div class="ui four item menu">
+            <div class="ui five item menu">
                 <a class="item" href="/new">
                     Pull shot
                 </a>
@@ -22,6 +22,9 @@
                 </a>
                 <a class="item" href="/new_bean">
                     Add coffee
+                </a>
+                <a class="item" style="color: red" href="/reflex">
+                    <i>reflex-frp</i>
                 </a>
                 <a class="item" href="/logout">
                     <i>Logout</i>
