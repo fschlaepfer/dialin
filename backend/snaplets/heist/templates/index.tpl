@@ -1,14 +1,15 @@
 <apply template="base">
 
   <ifLoggedIn>
-    <!--<div id="dialin-app" class="full-height">
-    </div>-->
+    <div id="dialin-app" class="full-height">
+    </div>
 
-    <h2>Welcome, <i><loggedInUser/></i>!</h2>
-
-    <!--<ignore>
-    <apply template="mainContentTemplate"/>
-    </ignore>-->
+    <!--<script src="/rts.js"></script>
+    <script src="/lib.js"></script>
+    <script src="/out.js"></script>-->
+    <!--<script src="/all.min.js" defer></script>-->
+    <script src="/all.min.js"></script>
+    <!--<script src="/runmain.js" defer></script>-->
   </ifLoggedIn>
 
   <ifLoggedOut>

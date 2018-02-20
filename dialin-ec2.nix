@@ -1,6 +1,6 @@
 let
   region = "us-east-2";
-  accessKeyId = "dialin-deploy";
+  accessKeyId = "dialin-deploy2";
 
 in
 { dialin =
@@ -10,7 +10,7 @@ in
     deployment.ec2.region = region;
     deployment.ec2.instanceType = "t2.micro";
     deployment.ec2.keyPair = resources.ec2KeyPairs.dialin-keys;
-    deployment.ec2.ebsInitialRootDiskSize = 5;
+    deployment.ec2.ebsInitialRootDiskSize = 10;
   };
 
   resources.ec2KeyPairs.dialin-keys =

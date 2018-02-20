@@ -11,28 +11,6 @@
     <title>Dial-In</title>
   </head>
   <body>
-    <div class="ui text container">
-        <ifLoggedIn>
-            <div class="ui five item menu">
-                <a class="item" href="/new">
-                    Pull shot
-                </a>
-                <a class="item" href="/recent">
-                    My shots
-                </a>
-                <a class="item" href="/new_bean">
-                    Add coffee
-                </a>
-                <a class="item" style="color: red" href="/reflex">
-                    <i>reflex-frp</i>
-                </a>
-                <a class="item" href="/logout">
-                    <i>Logout</i>
-                </a>
-            </div> 
-        </ifLoggedIn>
-
-        <apply-content/>
-    </div>
+    <apply-content/>
   </body>
 </html>

@@ -1,7 +1,3 @@
-<ignore>
-Requires the existence of two splices: postAction and submitText
-</ignore>
-
 <form class="ui large form" method="POST" action="${postAction}">
   <div class="ui stacked segment">
     <div class="field">
@@ -16,9 +12,6 @@ Requires the existence of two splices: postAction and submitText
         <input type="password" name="password" placeholder="Password" required>
       </div>
     </div>
-    <button class="ui fluid large teal submit button" type="submit"><submitText/></button>
+    <button class="ui fluid large submit button" type="submit"><submitText/></button>
   </div>
-
-  <div class="ui error message"></div>
-
 </form>

@@ -11,8 +11,6 @@
 
 module Models where
 
-import           Models.Grind
-import           Models.Rating
 import           Data.Text                    (Text)
 import           Database.Persist
 import           Database.Persist.Postgresql
@@ -20,18 +18,16 @@ import           Database.Persist.TH
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
   Bean json
-    name String
-    roaster String
+    name Text
+    roaster Text
     deriving Eq Show
   Brew json
     beanId BeanId
     userIdent Text
-    grind Grind
-    dose Double
+    dose Int
     time Int
-    yield Double
+    yield Int
     temperature Int
-    rating Rating
     notes Text
     deriving Eq Show
 |]

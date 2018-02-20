@@ -21,6 +21,7 @@ in {
 
   overrides = self: super: {
     heist = pkgs.haskell.lib.doJailbreak super.heist;
+    servant-auth = pkgs.haskell.lib.doJailbreak super.servant-auth;
 
     # TODO: use fetchFromGithub and use runCabal2Nix instead of defining cabal2nix as above.
 
@@ -30,6 +31,8 @@ in {
     #    sha256 = "1w5ms0k2d2mglp6b2kwgy4w73jnkwrd3ych22qzy5n947np4js0g";
     #}) {};
     snaplet-persistent = self.callPackage (cabal2nix ./deps/snaplet-persistent) {};
+    reflex-dom-semui = self.callPackage (cabal2nix ./deps/reflex-dom-semui) {};
+    servant-reflex = self.callPackage (cabal2nix ./deps/servant-reflex) {};
     #postgresql-simple = if self.ghc.isGhcjs or false then null else super.postgresql-simple;
   };
 })

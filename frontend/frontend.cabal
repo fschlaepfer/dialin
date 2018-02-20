@@ -24,7 +24,11 @@ executable frontend
                      , reflex
                      , reflex-dom
                      , reflex-dom-core
+                     , reflex-dom-semui
                      , jsaddle-warp
+                     , servant
+                     , servant-reflex
+                     , servant-auth
                      , containers
                      , text
                      , file-embed
