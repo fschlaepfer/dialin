@@ -62,9 +62,12 @@ app
     => m ()
 app = mdo
     (eNewShot, eShowShots, eNewBean) <- divClass "ui secondary pointing menu" $ do
-        eShowShots <- tabLink curTab ShowShots
-        eNewShot   <- tabLink curTab NewShot
-        eNewBean   <- tabLink curTab NewBean
+        let elem = elDynAttr' "a"
+        let staticAttrs = "class" =: "item"
+        let dynLink' = dynLink elem staticAttrs curTab 
+        eShowShots <- dynLink' ShowShots "Shots"
+        eNewShot   <- dynLink' NewShot "Pull"
+        eNewBean   <- dynLink' NewBean "Add Coffee"
         divClass "right menu" $ do
             elAttr "a" ("class" =: "item" <>
                         "href"  =: "/logout") $ text "Logout"
@@ -96,26 +99,23 @@ headElement = do
                     ]) blank
     return ()
   where
-    styleSheet bs = elAttr "style" (M.singleton "type" "text/css") $ text . decodeUtf8 $ bs
-    script bs = elAttr "script" (M.singleton "type" "text/javascript") $ text . decodeUtf8 $ bs
+    styleSheet bs = elAttr "style"  (M.singleton "type" "text/css") $ text . decodeUtf8 $ bs
+    script     bs = elAttr "script" (M.singleton "type" "text/javascript") $ text . decodeUtf8 $ bs
 #endif
 
-tabLink
-    :: MonadWidget t m
-    => Dynamic t Tab
-    -> Tab
-    -> m (Event t Tab)
-tabLink cur t = do
-    let isActive = (== t) <$> cur
+dynLink
+    :: (MonadWidget t m, Eq a)
+    => (Dynamic t (Map Text Text) -> m () -> m (El t, ()))
+    -> Map Text Text
+    -> Dynamic t a
+    -> a
+    -> Text
+    -> m (Event t a)
+dynLink elem staticAttrs cur x label = do
+    let isActive = (== x) <$> cur
     attrs <- makeActive isActive staticAttrs
-    (e, _) <- elDynAttr' "a" attrs $ text $ tabName t
-    return (t <$ domEvent Click e)
-  where
-    staticAttrs = "class" =: "item"
-    tabName = \case
-        NewShot   -> "Pull"
-        ShowShots -> "Shots"
-        NewBean   -> "Add Coffee"
+    (e, _) <- elem attrs $ text label
+    return (x <$ domEvent Click e)
 
 makeActive
     :: MonadWidget t m
@@ -148,11 +148,9 @@ shotWidget shotDyn = do
         labelAttrs = ("class" =: "label" <> "style" =: "font-size: 10pt")
 
     divClass "ui raised segment" $ do
-        
         divClass "ui top attached label" $ do
             dynText $ (coffeeName . snd) <$> shotDyn
             divClass "detail" $ dynText $ (coffeeRoaster . snd) <$> shotDyn
-
         divClass "ui four statistics" $ do
             divClass "ui mini statistic" $ do
                 elAttr "div" valueAttrs $ do
@@ -201,7 +199,9 @@ newShotTab = mdo
     rec let entries :: Dynamic t (Map (Maybe CoffeeId) (DropdownItemConfig m)) = makeEntries <$> coffees 
         let opts = [DOFSearch, DOFSelection, DOFFluid]
         coffee <- semUiDropdownWithItems "coffees-dropdown" opts Nothing entries mempty
+
     divClass "ui hidden divider" blank
+
     (dose, yield, time, temp) <- divClass "ui four column centered grid" $ do
         dose <- divClass "four column centered row" $ do
             numberSpinner 155 "Dose (g)"
