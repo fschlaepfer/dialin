@@ -30,7 +30,7 @@ import qualified Data.Text as T
 import           Data.Text.Encoding     (decodeUtf8)
 import           Text.Read              (readMaybe)
 import           Control.Applicative    ((<*>), (<$>))
-import           Control.Monad          (void)
+import           Control.Monad          (void, forM)
 import           Servant.API
 import           Servant.Reflex
 import           Common.Api
@@ -212,12 +212,41 @@ newShotTab = mdo
         temp <- divClass "four column centered row" $ do
             numberSpinner' 94 "Temp (C)"
         return (dose, yield, time, temp)
+
     divClass "ui hidden divider" blank
+
+    subhead "Grind"
+    grind <- uiTextInput (constDyn $ fluid def) $ def & attributes .~ constDyn ("placeholder" =: "Grind (optional)")
+
+    divClass "ui hidden divider" blank
+
+    subhead "Acidity"
+    acidity <- buttonGroup buttonLabels "5"
+
+    subhead "Body"
+    body <- buttonGroup buttonLabels "5"
+
+    subhead "Sweetness"
+    sweetness <- buttonGroup buttonLabels "5"
+
+    subhead "Aftertaste"
+    aftertaste <- buttonGroup buttonLabels "5"
+
+    subhead "Bitterness"
+    bitterness <- buttonGroup buttonLabels "4"
+
+    divClass "ui hidden divider" blank
+
+    subhead "Notes"
     notes <- uiTextInput (constDyn $ fluid def) $ def & attributes .~ constDyn ("placeholder" =: "Notes (optional)")
 
-    widgetHold (divClass "ui hidden divider" blank) (const savedMsg <$> saved)
+    divClass "ui hidden divider" blank
+    
     -- TODO: widgetHold save button and switch it our for the message when it is clicked.
+    widgetHold blank (const savedMsg <$> saved)
     saved <- uiButton (fluid <$> def) $ text "Save"
+
+    divClass "ui hidden divider" blank
 
     -- TODO: handle no coffee selected case and failure response case.
     let dynShot = Shot <$> dose <*> yield <*> time <*> temp <*> value notes
@@ -225,10 +254,23 @@ newShotTab = mdo
     resp :: Event t (ReqResult () ShotId) <- newShot dynReq (() <$ saved)
     return ()
   where
+    buttonLabels = ["1", "2", "3", "4", "5", "6", "7", "8"]
+    subhead txt = elAttr "h2" ("class" =: "ui sub header") $ text txt
     savedMsg = do
         divClass "ui success message" $ do
             divClass "header" $ text "Your shot was saved!"
-            el "p" $ text "It will now appear in the Shots tab."
+            el "p" $ text "It will now be listed in the Shots tab."
+
+buttonGroup
+    :: MonadWidget t m
+    => [Text]
+    -> Text
+    -> m (Dynamic t Text)
+buttonGroup labels init = mdo
+    let attrs = ("class" =: "ui button")
+    buttons <- divClass "eight ui buttons" $ forM labels (\l -> dynLink (elDynAttr' "div") attrs cur l l)
+    cur <- holdDyn init . leftmost $ zipWith (<$) labels buttons
+    return cur
 
 makeEntries
     :: forall t m. MonadWidget t m
