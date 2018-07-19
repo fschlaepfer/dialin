@@ -118,11 +118,12 @@ server = getCoffees :<|> newCoffee :<|> getShots :<|> newShot
                  return (bean, brew)
         return $ map toShot $ map (\(bean, brew) -> (entityVal bean, entityVal brew)) brews'
     toShot :: (Bean, Brew) -> (Shot, Coffee)
-    toShot (Bean name roaster, Brew beanId _ dose yield time temp notes)
-        = (Shot dose yield time temp notes, Coffee name roaster)
+    toShot (Bean name roaster, Brew beanId _ dose yield time temp grind notes acidity body sweetness aftertaste bitterness)
+        = (Shot dose yield time temp grind notes acidity body sweetness aftertaste bitterness, Coffee name roaster)
         
     newShot :: (Shot, CoffeeId) -> (Handler App App) ShotId
-    newShot (s@(Shot dose yield time temp notes), CoffeeId beanId) = do
+    newShot (s@(Shot dose yield time temp grind notes acidity body sweetness aftertaste bitterness),
+            CoffeeId beanId) = do
         pool <- asks (_appStateDb . _appState)
         user <- with auth currentUser
         let beanKey :: Key Bean = toSqlKey beanId
@@ -130,7 +131,8 @@ server = getCoffees :<|> newCoffee :<|> getShots :<|> newShot
         --let userIdent = "localTestUser"
         let userIdent = unUid . fromJust . userId $ fromJust user
 
-        (ShotId . fromSqlKey) <$> (withPool pool $ insert $ Brew beanKey userIdent dose yield time temp notes)
+        (ShotId . fromSqlKey) <$> (withPool pool $ insert $
+            Brew beanKey userIdent dose yield time temp grind notes acidity body sweetness aftertaste bitterness)
 
 initApp :: ConnectionPool -> SnapletInit App App
 initApp pool = makeSnaplet "dial-in" "Dial in your espresso shots faster!" Nothing $ do

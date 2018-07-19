@@ -18,17 +18,24 @@ import           Database.Persist.TH
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
   Bean json
-    name Text
+    name    Text
     roaster Text
     deriving Eq Show
+
   Brew json
-    beanId BeanId
-    userIdent Text
-    dose Int
-    time Int
-    yield Int
+    beanId      BeanId
+    userIdent   Text
+    dose        Int
+    time        Int
+    yield       Int
     temperature Int
-    notes Text
+    grind       Text
+    notes       Text
+    acidity     Int
+    body        Int
+    sweetness   Int
+    aftertaste  Int
+    bitterness  Int
     deriving Eq Show
 |]
 

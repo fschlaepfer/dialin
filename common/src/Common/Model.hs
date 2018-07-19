@@ -28,7 +28,13 @@ data Shot = Shot
     , shotYield         :: Int -- ^ in tenths of grams
     , shotTime          :: Int -- ^ in seconds
     , shotTemp          :: Int -- ^ in degrees celsius
+    , shotGrind         :: Text
     , shotNotes         :: Text
+    , shotAcidity       :: Int
+    , shotBody          :: Int
+    , shotSweetness     :: Int
+    , shotAftertaste    :: Int
+    , shotBitterness    :: Int
     } deriving (Generic, Eq, Show)
 
 instance FromJSON Shot

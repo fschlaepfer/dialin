@@ -30,7 +30,7 @@ import qualified Data.Text as T
 import           Data.Text.Encoding     (decodeUtf8)
 import           Text.Read              (readMaybe)
 import           Control.Applicative    ((<*>), (<$>))
-import           Control.Monad          (void, forM)
+import           Control.Monad          (void, forM, forM_)
 import           Servant.API
 import           Servant.Reflex
 import           Common.Api
@@ -151,6 +151,7 @@ shotWidget shotDyn = do
         divClass "ui top attached label" $ do
             dynText $ (coffeeName . snd) <$> shotDyn
             divClass "detail" $ dynText $ (coffeeRoaster . snd) <$> shotDyn
+
         divClass "ui four statistics" $ do
             divClass "ui mini statistic" $ do
                 elAttr "div" valueAttrs $ do
@@ -168,10 +169,51 @@ shotWidget shotDyn = do
                 elAttr "div" valueAttrs $ do
                     dynText $ (T.pack . show . shotTemp . fst) <$> shotDyn
                 elAttr "div" labelAttrs $ text "temp (°C)"
-        
+
+        el "p" blank
+
+        divClass "ui five statistics" $ do
+            descriptorItems shotDyn
+                [ ("Acidity",    shotAcidity)
+                , ("Body",       shotBody)
+                , ("Sweetness",  shotSweetness)
+                , ("Aftertaste", shotAftertaste)
+                , ("Bitterness", shotBitterness)
+                ]
+
+        showIf (not . T.null . shotGrind . fst) shotDyn $ do
+            el "p" blank
+            divClass "ui left pointing label" $ do
+                text "Grind: "
+                elAttr "span" ("style" =: "font-weight: normal") $ dynText $ (shotGrind . fst) <$> shotDyn
+
         showIf (not . T.null . shotNotes . fst) shotDyn $ do
             el "p" blank
-            divClass "ui left pointing label" $ dynText $ (shotNotes . fst) <$> shotDyn
+            divClass "ui left pointing label" $ do
+                text "Notes: "
+                elAttr "span" ("style" =: "font-weight: normal") $ dynText $ (shotNotes . fst) <$> shotDyn
+  where        
+    descriptorItems shotDyn xs = forM_ xs (\(name, f) -> descriptorItem name $ (T.pack . show . f . fst) <$> shotDyn)
+
+
+descriptorItem
+    :: MonadWidget t m
+    => Text
+    -> Dynamic t Text
+    -> m ()
+descriptorItem name valDyn = do
+    --divClass "item" $ do
+    --    divClass "content" $ do
+    --        divClass "header" $ elAttr "div" ("style" =: "font-size: 1.5rem; padding-bottom: 4pt") $ dynText val
+    --        divClass "description" $ text name
+    divClass "ui mini statistic" $ do
+        elAttr "div" valueAttrs $ do
+            dynText valDyn
+        elAttr "div" labelAttrs $
+            text name
+  where
+    valueAttrs = ("class" =: "value" <> "style" =: "font-size: 14pt")
+    labelAttrs = ("class" =: "label" <> "style" =: "font-size: 6pt")
 
 showIf
     :: MonadWidget t m
@@ -204,9 +246,9 @@ newShotTab = mdo
 
     (dose, yield, time, temp) <- divClass "ui four column centered grid" $ do
         dose <- divClass "four column centered row" $ do
-            numberSpinner 155 "Dose (g)"
+            numberSpinner 200 "Dose (g)"
         yield <- divClass "four column centered row" $ do
-            numberSpinner 350 "Yield (g)"
+            numberSpinner 450 "Yield (g)"
         time <- divClass "four column centered row" $ do
             numberSpinner' 28 "Time (s)"
         temp <- divClass "four column centered row" $ do
@@ -220,20 +262,18 @@ newShotTab = mdo
 
     divClass "ui hidden divider" blank
 
+    let textDescriptor = descriptor (read . T.unpack) buttonLabels
+
     subhead "Acidity"
-    acidity <- buttonGroup buttonLabels "5"
-
+    acidity <- textDescriptor "5"
     subhead "Body"
-    body <- buttonGroup buttonLabels "5"
-
+    body <- textDescriptor "5"
     subhead "Sweetness"
-    sweetness <- buttonGroup buttonLabels "5"
-
+    sweetness <- textDescriptor "5"
     subhead "Aftertaste"
-    aftertaste <- buttonGroup buttonLabels "5"
-
+    aftertaste <- textDescriptor "5"
     subhead "Bitterness"
-    bitterness <- buttonGroup buttonLabels "4"
+    bitterness <- textDescriptor "5"
 
     divClass "ui hidden divider" blank
 
@@ -249,7 +289,7 @@ newShotTab = mdo
     divClass "ui hidden divider" blank
 
     -- TODO: handle no coffee selected case and failure response case.
-    let dynShot = Shot <$> dose <*> yield <*> time <*> temp <*> value notes
+    let dynShot = Shot <$> dose <*> yield <*> time <*> temp <*> value grind <*> value notes <*> acidity <*> body <*> sweetness <*> aftertaste <*> bitterness
     let dynReq = zipDynWith (\s c -> Right (s, fromJust c)) dynShot coffee
     resp :: Event t (ReqResult () ShotId) <- newShot dynReq (() <$ saved)
     return ()
@@ -260,6 +300,16 @@ newShotTab = mdo
         divClass "ui success message" $ do
             divClass "header" $ text "Your shot was saved!"
             el "p" $ text "It will now be listed in the Shots tab."
+
+descriptor
+    :: MonadWidget t m
+    => (Text -> b)
+    -> [Text]
+    -> Text
+    -> m (Dynamic t b)
+descriptor f labels init = do
+    x' <- buttonGroup labels init
+    return $ fmap f x'
 
 buttonGroup
     :: MonadWidget t m
