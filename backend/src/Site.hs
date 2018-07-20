@@ -11,6 +11,8 @@ module Site
     ( site
     ) where
 
+import Data.Int (Int64)
+
 import           Common.Api                   (Api)
 import           Common.Model                 (Coffee(..), CoffeeId(..), Shot(..), ShotId(..))
 import           Types.App
@@ -35,7 +37,7 @@ import           Database.Persist.Sql         hiding ((==.))
 import           Database.Persist.Postgresql  hiding ((==.))
 import           Database.Persist.TH 
 import qualified Database.Esqueleto as E
-import           Database.Esqueleto           ((^.), (==.))
+import           Database.Esqueleto           ((^.), (==.), (&&.))
 import           Text.Digestive
 import           Text.Digestive.Heist
 import           Text.Digestive.Snap          hiding (method)
@@ -88,38 +90,43 @@ handleRegister = method GET handleForm <|> method POST handleFormSubmit
                          (redirect "/index")
 
 server :: Server Api '[] AppHandler
-server = getCoffees :<|> newCoffee :<|> getShots :<|> newShot
+server = getCoffees :<|> newCoffee :<|> getShots :<|> newShot :<|> deleteShot
   where
     getCoffees :: (Handler App App) [(Coffee, CoffeeId)]
     getCoffees = do
         pool <- asks (_appStateDb . _appState)
         beans <- withPool pool $ selectList [] []
         return $ map beanToCoffee beans
-    beanToCoffee :: Entity Bean -> (Coffee, CoffeeId)
-    beanToCoffee (Entity key (Bean name roaster))
-        = (Coffee name roaster, CoffeeId $ fromSqlKey key)
+      where
+        beanToCoffee :: Entity Bean -> (Coffee, CoffeeId)
+        beanToCoffee (Entity key (Bean name roaster))
+            = (Coffee name roaster, CoffeeId $ fromSqlKey key)
 
     newCoffee :: Coffee -> (Handler App App) CoffeeId
     newCoffee c@(Coffee name roaster) = do
         pool <- asks (_appStateDb . _appState)
         (CoffeeId . fromSqlKey) <$> (withPool pool $ insert $ Bean name roaster)
 
-    getShots :: (Handler App App) [(Shot, Coffee)]
+    getShots :: (Handler App App) [(Int64, Shot, Coffee)]
     getShots = do
         pool <- asks (_appStateDb . _appState)
         -- TODO: 403 if not logged in.
-        u <- with auth currentUser
-        let uid = unUid . fromJust . userId $ fromJust u
+        user <- with auth currentUser
+        let uid = unUid . fromJust . userId $ fromJust user
         brews' <- withPool pool
             $ E.select
             $ E.from $ \(brew `E.InnerJoin` bean) -> do
                  E.where_ (brew ^. BrewUserIdent ==. (E.val uid))
                  E.on $ brew ^. BrewBeanId ==. bean ^. BeanId
                  return (bean, brew)
-        return $ map toShot $ map (\(bean, brew) -> (entityVal bean, entityVal brew)) brews'
-    toShot :: (Bean, Brew) -> (Shot, Coffee)
-    toShot (Bean name roaster, Brew beanId _ dose yield time temp grind notes acidity body sweetness aftertaste bitterness)
-        = (Shot dose yield time temp grind notes acidity body sweetness aftertaste bitterness, Coffee name roaster)
+        return $ map toShot $ map (\(bean, brew) -> (entityVal bean, entityVal brew, entityKey brew)) brews'
+      where
+        toShot :: (Bean, Brew, Key Brew) -> (Int64, Shot, Coffee)
+        toShot (Bean name roaster, Brew beanId _ dose yield time temp grind notes acidity body sweetness aftertaste bitterness, brewKey)
+            = ( fromSqlKey $ brewKey
+              , Shot dose yield time temp grind notes acidity body sweetness aftertaste bitterness
+              , Coffee name roaster
+              )
         
     newShot :: (Shot, CoffeeId) -> (Handler App App) ShotId
     newShot (s@(Shot dose yield time temp grind notes acidity body sweetness aftertaste bitterness),
@@ -127,12 +134,22 @@ server = getCoffees :<|> newCoffee :<|> getShots :<|> newShot
         pool <- asks (_appStateDb . _appState)
         user <- with auth currentUser
         let beanKey :: Key Bean = toSqlKey beanId
-        
-        --let userIdent = "localTestUser"
         let userIdent = unUid . fromJust . userId $ fromJust user
-
         (ShotId . fromSqlKey) <$> (withPool pool $ insert $
             Brew beanKey userIdent dose yield time temp grind notes acidity body sweetness aftertaste bitterness)
+
+    deleteShot :: ShotId -> (Handler App App) NoContent
+    deleteShot (ShotId brewId) = do
+        pool <- asks (_appStateDb . _appState)
+        user <- with auth currentUser
+        let brewKey :: Key Brew = toSqlKey brewId
+        let userIdent = unUid . fromJust . userId $ fromJust user
+        void $ withPool pool
+            $ E.delete
+            $ E.from $ \brew -> do
+                E.where_ (brew ^. BrewId        ==. (E.val brewKey)
+                      &&. brew ^. BrewUserIdent ==. (E.val userIdent))
+        return NoContent
 
 initApp :: ConnectionPool -> SnapletInit App App
 initApp pool = makeSnaplet "dial-in" "Dial in your espresso shots faster!" Nothing $ do

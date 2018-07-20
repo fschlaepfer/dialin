@@ -57,6 +57,7 @@ getApiUrl = return $ constDyn $ BasePath "/api"
 getApiUrl = return $ constDyn $ BaseFullUrl Http "localhost" 8000 "/api"
 #endif
 
+-- TODO: Check for and handle errors.
 app
     :: forall t m. MonadWidget t m
     => m ()
@@ -132,25 +133,43 @@ shotsTab
     => m ()
 shotsTab = mdo
     apiUrl <- getApiUrl
-    let (_ :<|> _ :<|> getShots :<|> _) = client (Proxy :: Proxy Api) (Proxy :: Proxy m) (Proxy :: Proxy ()) apiUrl
+    let (_ :<|> _ :<|> getShots :<|> _ :<|> _) = client (Proxy :: Proxy Api) (Proxy :: Proxy m) (Proxy :: Proxy ()) apiUrl
     pb <- getPostBuild
-    shotsResponse :: Event t (ReqResult () [(Shot, Coffee)]) <- getShots pb
-    shots :: Dynamic t [(Shot, Coffee)] <- foldDyn (++) [] (fmapMaybe reqSuccess shotsResponse)
+    shotsResponse :: Event t (ReqResult () [(Int64, Shot, Coffee)]) <- getShots pb
+    shots :: Dynamic t [(Int64, Shot, Coffee)] <- foldDyn (++) [] (fmapMaybe reqSuccess shotsResponse)
+    let errs = fmapMaybe reqFailure shotsResponse
+    dynText =<< holdDyn "" errs
+    -- TODO: Use DynamicList from reflex-dom-contrib to dynamically remove
+    -- deleted items from the list.
     simpleList (reverse <$> shots) shotWidget
     return ()
 
 shotWidget
-    :: MonadWidget t m
-    => Dynamic t (Shot, Coffee)
+    :: forall t m. MonadWidget t m
+    => Dynamic t (Int64, Shot, Coffee)
     -> m ()
-shotWidget shotDyn = do
+shotWidget shotCoffeeDyn = do
     let valueAttrs = ("class" =: "value" <> "style" =: "font-size: 16pt")
         labelAttrs = ("class" =: "label" <> "style" =: "font-size: 10pt")
 
+    let shotIdDyn' = fmap (\(shotId, s, c) -> (ShotId shotId, (s, c))) shotCoffeeDyn
+    let (shotIdDyn, shotDyn) = (fmap fst shotIdDyn', fmap snd shotIdDyn')
+
+    apiUrl <- getApiUrl
+    let (_ :<|> _ :<|> _ :<|> _ :<|> deleteShot) = client (Proxy :: Proxy Api) (Proxy :: Proxy m) (Proxy :: Proxy ()) apiUrl
+    
     divClass "ui raised segment" $ do
-        divClass "ui top attached label" $ do
+        delete <- divClass "ui top attached label" $ do
             dynText $ (coffeeName . snd) <$> shotDyn
             divClass "detail" $ dynText $ (coffeeRoaster . snd) <$> shotDyn
+
+            (e, _) <- elAttr' "a" ("style" =: "float: right; color: red;") $ do
+                elClass "i" "delete icon" blank
+                text "Delete"
+            return (() <$ domEvent Click e)
+
+        resp :: Event t (ReqResult () NoContent) <- deleteShot (Right <$> shotIdDyn) (() <$ delete)
+        widgetHold blank (const deletedMsg <$> resp)
 
         divClass "ui four statistics" $ do
             divClass "ui mini statistic" $ do
@@ -192,8 +211,13 @@ shotWidget shotDyn = do
             divClass "ui left pointing label" $ do
                 text "Notes: "
                 elAttr "span" ("style" =: "font-weight: normal") $ dynText $ (shotNotes . fst) <$> shotDyn
+        return ()
   where        
     descriptorItems shotDyn xs = forM_ xs (\(name, f) -> descriptorItem name $ (T.pack . show . f . fst) <$> shotDyn)
+    deletedMsg = do
+        divClass "ui success message" $ do
+            divClass "header" $ text "Your shot has been deleted."
+            el "p" $ text "It will no longer be listed after you reload this page."
 
 
 descriptorItem
@@ -233,7 +257,7 @@ newShotTab
     => m ()
 newShotTab = mdo
     apiUrl <- getApiUrl
-    let (getCoffees :<|> _ :<|> _ :<|> newShot) = client (Proxy :: Proxy Api) (Proxy :: Proxy m) (Proxy :: Proxy ()) apiUrl
+    let (getCoffees :<|> _ :<|> _ :<|> newShot :<|> _) = client (Proxy :: Proxy Api) (Proxy :: Proxy m) (Proxy :: Proxy ()) apiUrl
     pb <- getPostBuild
     coffeesResponse :: Event t (ReqResult () [(Coffee, CoffeeId)]) <- getCoffees pb
     coffees :: Dynamic t [(Coffee, CoffeeId)] <- foldDyn (++) [] (fmapMaybe reqSuccess coffeesResponse)
@@ -282,13 +306,14 @@ newShotTab = mdo
 
     divClass "ui hidden divider" blank
     
-    -- TODO: widgetHold save button and switch it our for the message when it is clicked.
-    widgetHold blank (const savedMsg <$> saved)
+    -- TODO: `widgetHold` the Save button and switch it out for the message
+    -- when it is clicked and the response has been received.
+    widgetHold blank (const savedMsg <$> resp)
     saved <- uiButton (fluid <$> def) $ text "Save"
 
     divClass "ui hidden divider" blank
 
-    -- TODO: handle no coffee selected case and failure response case.
+    -- TODO: Handle the "no coffee selected" case and failure response case.
     let dynShot = Shot <$> dose <*> yield <*> time <*> temp <*> value grind <*> value notes <*> acidity <*> body <*> sweetness <*> aftertaste <*> bitterness
     let dynReq = zipDynWith (\s c -> Right (s, fromJust c)) dynShot coffee
     resp :: Event t (ReqResult () ShotId) <- newShot dynReq (() <$ saved)
@@ -326,7 +351,7 @@ makeEntries
     :: forall t m. MonadWidget t m
     => [(Coffee, CoffeeId)]
     -> Map (Maybe CoffeeId) (DropdownItemConfig m)
-makeEntries xs = M.fromList $ (Nothing, DropdownItemConfig "Select a coffee" $ blank) : (map (mapFst Just) $ makeEntry <$> xs)
+makeEntries xs = M.fromList $ (Nothing, DropdownItemConfig "Select or search a coffee" $ blank) : (map (mapFst Just) $ makeEntry <$> xs)
   where
     mapFst :: (a -> c) -> (a, b) -> (c, b)
     mapFst f (x, y) = (f x, y)
@@ -351,7 +376,7 @@ newBeanTab
     => m ()
 newBeanTab = mdo
     apiUrl <- getApiUrl
-    let (_ :<|> newCoffee :<|> _ :<|> _) = client (Proxy :: Proxy Api) (Proxy :: Proxy m) (Proxy :: Proxy ()) apiUrl
+    let (_ :<|> newCoffee :<|> _ :<|> _ :<|> _) = client (Proxy :: Proxy Api) (Proxy :: Proxy m) (Proxy :: Proxy ()) apiUrl
     (name, roaster, saved) <- divClass "ui text container" $ do
         name    <- uiTextInput (constDyn $ fluid def) $ def & attributes .~ constDyn ("placeholder" =: "Coffee Name")
         divClass "ui hidden divider" blank

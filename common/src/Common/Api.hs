@@ -16,7 +16,8 @@ import           Data.Text      (Text)
 import           Servant.API
 
 type Api =
-        "coffee"                                     :> Get  '[JSON] [(Coffee, CoffeeId)]
-   :<|> "coffee" :> ReqBody '[JSON] Coffee           :> Post '[JSON] CoffeeId
-   :<|> "shot"                                       :> Get  '[JSON] [(Shot, Coffee)]
-   :<|> "shot"   :> ReqBody '[JSON] (Shot, CoffeeId) :> Post '[JSON] ShotId
+        "coffee"                                     :> Get             '[JSON] [(Coffee, CoffeeId)]
+   :<|> "coffee" :> ReqBody '[JSON] Coffee           :> Post            '[JSON] CoffeeId
+   :<|> "shot"                                       :> Get             '[JSON] [(Int64, Shot, Coffee)]
+   :<|> "shot"   :> ReqBody '[JSON] (Shot, CoffeeId) :> Post            '[JSON] ShotId
+   :<|> "shot"   :> ReqBody '[JSON] ShotId           :> DeleteNoContent '[JSON] NoContent
